@@ -3,6 +3,7 @@ package com.learnkafka.producer;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.learnkafka.domain.LibraryEvent;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -10,6 +11,8 @@ import java.util.concurrent.TimeoutException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.header.Header;
+import org.apache.kafka.common.header.internals.RecordHeader;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
@@ -71,7 +74,7 @@ public class LibraryEventsProducer {
         var key = libraryEvent.libraryEventId();
         var value = objectMapper.writeValueAsString(libraryEvent);
 
-        var producerRecord = buildProducerRecord(key, value);
+        var producerRecord = this.buildProducerRecord(key, value);
 
         // 1. Blocking call - get metadata about the kafka cluster
         // 2. Send message happens - Return a CompletableFuture
@@ -80,9 +83,9 @@ public class LibraryEventsProducer {
         return completeFuture
                 .whenComplete((sendResult, throwable) -> {
                     if (throwable != null) {
-                        handleFailure(key, value, throwable);
+                        this.handleFailure(key, value, throwable);
                     } else {
-                        handleSuccess(key, value, sendResult);
+                        this.handleSuccess(key, value, sendResult);
                     }
                 });
     }
@@ -90,7 +93,9 @@ public class LibraryEventsProducer {
     private ProducerRecord<Integer, String> buildProducerRecord(final Integer key, String value)
             throws JsonProcessingException {
 
-        return new ProducerRecord<>(topic, key, value);
+        List<Header> recordHeaders = List.of(new RecordHeader("event-source", "scanner".getBytes()));
+
+        return new ProducerRecord<>(topic, null, key, value, recordHeaders);
     }
 
     private void handleSuccess(final Integer key, final String value, final SendResult<Integer, String> sendResult) {
