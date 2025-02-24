@@ -1,9 +1,7 @@
 package com.learnkafka.domain;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 /**
  * Book
@@ -14,14 +12,14 @@ import lombok.NoArgsConstructor;
  * @version 22/02/2025 - 19:15
  * @since 1.17
  */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-@Builder
-public class Book {
+public record Book(
+        @NotNull
+        Integer bookId,
 
-    Integer bookId;
-    String bookName;
-    String bookAuthor;
+        @NotBlank
+        String bookName,
 
+        @NotBlank
+        String bookAuthor
+) {
 }
