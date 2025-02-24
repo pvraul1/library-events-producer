@@ -17,7 +17,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.when;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
@@ -64,10 +66,13 @@ public class LibraryEventsControllerUnitTest {
         when(libraryEventsProducer.sendLibraryEvent_approach3(isA(LibraryEvent.class)))
                 .thenReturn(null);
 
+        var expectedErrorMessage = "book.bookId - must not be null, book.bookName - must not be blank";
+
         mockMvc.perform(post(URL)
                         .content(json)
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().is4xxClientError());
-
+                .andExpect(status().is4xxClientError())
+                .andExpect(content().string(expectedErrorMessage));
     }
+
 }
